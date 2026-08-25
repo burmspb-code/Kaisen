@@ -1,4 +1,13 @@
+import os
 from pathlib import Path
+
+from dotenv import load_dotenv
+
+from config.settings_utils import get_env
+
+load_dotenv()
+
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -8,10 +17,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-w+p%wcfenbzaoz85p^$(zpy%en1of(5gxcqo_3o%h9e0h*j7#5'
+SECRET_KEY = get_env('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv('DEBUG', 'True') == 'True'
 
 ALLOWED_HOSTS = []
 
@@ -65,12 +74,14 @@ WSGI_APPLICATION = 'config.wsgi.application'
 
 
 # Database
-# https://docs.djangoproject.com/en/6.1/ref/settings/#databases
-
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": get_env("DB_NAME"),
+        "USER": get_env("DB_USER"),
+        "PASSWORD": get_env("DB_PASSWORD"),
+        "HOST": get_env("DB_HOST"),
+        "PORT": int(os.getenv("DB_PORT")),
     }
 }
 
