@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'corsheaders',
 
     'routines',
+    'users',
 ]
 
 MIDDLEWARE = [
@@ -121,6 +122,10 @@ STATIC_URL = "static/"
 STATICFILES_DIRS = [
     BASE_DIR / "static",
 ]
+
+
+# Указываем Django использовать кастомную модель вместо встроенной
+AUTH_USER_MODEL = "users.CustomUser"
 
 
 # Email
