@@ -68,7 +68,7 @@ class Habit(models.Model):
         help_text="Укажите: либо True, либо False"
     )
 
-    class Meta():
+    class Meta:
         verbose_name="Привычка"
         verbose_name_plural="Привычки"
 

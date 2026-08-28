@@ -1,5 +1,5 @@
 """
-Модуль моделей приложения управления пользователями (users).
+Модели приложения users.
 
 Содержит кастомную модель пользователя CustomUser, расширяющую стандартный
 функционал Django возможностью хранения аватаров.
@@ -20,13 +20,6 @@ class CustomUser(AbstractUser):
     username = None
     email = models.EmailField(
         unique=True, verbose_name="email", help_text="Введите адрес электронной почты"
-    )
-    avatar = models.ImageField(
-        null=True,
-        blank=True,
-        upload_to="avatars",
-        verbose_name="Аватар",
-        help_text="Загрузите аватар",
     )
 
     USERNAME_FIELD = "email"  # Поле для входа (логин)
