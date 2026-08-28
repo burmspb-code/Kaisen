@@ -5,7 +5,7 @@
 from users.apps import UsersConfig
 from django.urls import path
 
-from users.views import UserRegisterAPIView, UserLoginAPIView
+from users.views import UserRegisterAPIView, UserLoginAPIView, UserListAPIView, UserLogoutAPIView
 
 app_name = UsersConfig.name
 

@@ -5,6 +5,8 @@ from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.generics import CreateAPIView, ListAPIView, RetrieveUpdateAPIView
 from rest_framework.response import Response
 
+from users.serializers import UserRegisterSerializer, UserLoginSerializer, UserProfileSerializer, UserListSerializer
+
 
 class UserRegisterAPIView(CreateAPIView):
     """Класс для решистрации пользователей."""
