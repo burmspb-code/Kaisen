@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 
+from django.core.exceptions import ImproperlyConfigured
 from dotenv import load_dotenv
 
 from config.settings_utils import get_env
@@ -19,10 +20,15 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = get_env('SECRET_KEY')
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv('DEBUG', 'True') == 'True'
+# ВАЛИДАЦИЯ: Проверяем, существует ли ключ
+if not SECRET_KEY:
+    raise ImproperlyConfigured("Переменная окружения SECRET_KEY не задана в файле .env!")
 
-ALLOWED_HOSTS = []
+# SECURITY WARNING: don't run with debug turned on in production!
+DEBUG = os.getenv('DEBUG', 'False') == 'True'
+
+# Домены, с которых разрешено делать запросы
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '127.0.0.1,localhost').split(',')
 
 
 # Application definition
@@ -36,6 +42,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     'rest_framework',
+    'rest_framework.authtoken',
     'corsheaders',
 
     "drf_spectacular_sidecar",
@@ -108,6 +115,13 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+AUTHENTICATION_BACKENDS = [
+    # Ваш кастомный бэкенд для входа по email:
+    'users.authentication.EmailAuthBackend',
+    # Оставляем стандартный бэкенд (для админки Django, где вход по username):
+    'django.contrib.auth.backends.ModelBackend',
+]
+
 
 # Internationalization
 LANGUAGE_CODE = "ru-ru"
@@ -134,7 +148,7 @@ AUTH_USER_MODEL = "users.CustomUser"
 # Email
 # https://docs.djangoproject.com/en/6.1/topics/email/#topic-email-configuration
 
-MAILERS = {
+EMAIL_BACKEND = {
     'default': {
         'BACKEND': 'django.core.mail.backends.console.EmailBackend',
     },
@@ -151,19 +165,39 @@ CORS_ALLOWED_ORIGINS = [
 # Разрешаем передачу cookie и токенов авторизации
 CORS_ALLOW_CREDENTIALS = True
 
-# Базовые настройки Django REST Framework
+
+# ====================== Базовые настройки Django REST Framework ====================
 REST_FRAMEWORK = {
+    # ЯВНО УКАЗЫВАЕМ СТИЛИ АВТОРИЗАЦИИ:
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        # Основной способ для API и логаута:
+        'rest_framework.authentication.TokenAuthentication',
+        # Оставляем сессии ТОЛЬКО для того, чтобы вы могли входить в аккаунт
+        # внутри дебаг-панели BrowsableAPIRenderer:
+        'rest_framework.authentication.SessionAuthentication',
+    ],
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.AllowAny',
+        'rest_framework.permissions.IsAuthenticated',
     ],
     'DEFAULT_RENDERER_CLASSES': [
         'rest_framework.renderers.JSONRenderer',
         'rest_framework.renderers.BrowsableAPIRenderer',
     ],
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+    'DEFAULT_THROTTLE_CLASSES': [
+        # Ограничения для анонимных пользователей (по IP-адресу)
+        'rest_framework.throttling.AnonRateThrottle',
+        # Ограничения для авторизованных пользователей (по User ID)
+        'rest_framework.throttling.UserRateThrottle',
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        # Считываем лимиты из .env. Если их там нет, ставим безопасные дефолты.
+        'anon': os.environ.get('THROTTLE_RATE_ANON', '10/minute'),
+        'user': os.environ.get('THROTTLE_RATE_USER', '1000/day'),
+    }
 }
 
-# Настройки для автодкументации
+# Настройки для автодокументации
 SPECTACULAR_SETTINGS = {
     'TITLE': 'Kaisen API',
     'DESCRIPTION': 'Документация для проекта Kaisen',

@@ -5,7 +5,7 @@
 from users.apps import UsersConfig
 from django.urls import path
 
-from users.views import UserRegisterAPIView, UserLoginAPIView, UserListAPIView, UserLogoutAPIView
+from users.views import UserRegisterAPIView, UserLoginAPIView, UserListAPIView, UserLogoutAPIView, UserProfileAPIView
 
 app_name = UsersConfig.name
 
@@ -28,9 +28,15 @@ urlpatterns = [
         UserLoginAPIView.as_view(),
         name="auth-login",
     ),
+    # Эндпоинт закрытия сессии
     path(
         "auth/logout/",
         UserLogoutAPIView.as_view(),
         name="auth-logout",
     ),
+    path(
+        "users/profile/",
+        UserProfileAPIView.as_view(),
+        name="user-profile",
+    )
 ]
