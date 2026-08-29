@@ -1,19 +1,25 @@
 from django.contrib.auth import logout
-from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiResponse, inline_serializer
-from rest_framework import status, serializers
+from drf_spectacular.utils import OpenApiResponse, extend_schema, extend_schema_view, inline_serializer
+from rest_framework import serializers, status
 from rest_framework.authtoken.models import Token
-from rest_framework.generics import RetrieveUpdateDestroyAPIView, CreateAPIView, ListAPIView
+from rest_framework.generics import CreateAPIView, ListAPIView, RetrieveUpdateDestroyAPIView
 from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from users.models import CustomUser
-from users.serializers import UserRegisterSerializer, UserLoginSerializer, UserProfileSerializer, UserListSerializer
-from users.serializers import UserRegisterSuccessResponseSerializer
+from users.serializers import (
+    UserListSerializer,
+    UserLoginSerializer,
+    UserProfileSerializer,
+    UserRegisterSerializer,
+    UserRegisterSuccessResponseSerializer,
+)
 
 
 @extend_schema(
     summary="Регистрация нового пользователя",
+    auth=[], # Показывает, что авторизация не нужна
     description=(
         "Создает новый аккаунт пользователя в системе. "
         "Формирует токен для нового пользователя. "
@@ -34,7 +40,7 @@ class UserRegisterAPIView(CreateAPIView):
     """Представление для регистрации пользователей."""
 
     serializer_class = UserRegisterSerializer
-    permission_classes = [AllowAny]
+    permission_classes = (AllowAny,)
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -44,7 +50,7 @@ class UserRegisterAPIView(CreateAPIView):
         user = serializer.save()
 
         # ГЕНЕРИРУЕМ ТОКЕН: Создаем токен в БД для нового пользователя
-        token, created = Token.objects.get_or_create(user=user)
+        token, _ = Token.objects.get_or_create(user=user)
 
         # Формируем красивый ответ для фронтенда
         return Response(
@@ -61,6 +67,7 @@ class UserRegisterAPIView(CreateAPIView):
 
 @extend_schema(
     summary="Аутентификация пользователя",
+    auth=[], # Показывает, что авторизация не нужна
     description=(
         "Возвращает ответ со статусом 200 OK, токен авторизации и email пользователя при успешном входе. "
         "Доступ разрешен незарегистрированным пользователям без авторизации."
@@ -90,7 +97,7 @@ class UserLoginAPIView(APIView):
     """Класс для входа пользователей с выдачей токена."""
 
     serializer_class = UserLoginSerializer
-    permission_classes = [AllowAny]
+    permission_classes = (AllowAny, )
 
     def post(self, request):
         serializer = self.serializer_class(data=request.data)
@@ -106,7 +113,7 @@ class UserLoginAPIView(APIView):
             )
 
         # ГЕНЕРИРУЕМ ТОКЕН: Создаем или берем существующий токен из базы данных
-        token, created = Token.objects.get_or_create(user=user)
+        token, _ = Token.objects.get_or_create(user=user)
 
         # Возвращаем токен клиенту
         return Response(
@@ -123,6 +130,7 @@ class UserLoginAPIView(APIView):
     get=extend_schema(
         summary="Получить информацию о пользователе",
         description="Доступно зарегистрированному пользователю для просмотра своей личной информации.",
+        tags=["Пользователи"],
         responses={
             200: OpenApiResponse(response=UserProfileSerializer, description="Информация успешно получена."),
             401: OpenApiResponse(description="Неавторизованный доступ (отсутствует или неверен токен)."),
@@ -131,6 +139,7 @@ class UserLoginAPIView(APIView):
     put=extend_schema(
         summary="Полное обновление информации о пользователе",
         description="Доступно зарегистрированному пользователю для полного изменения своего профиля.",
+        tags=["Пользователи"],
         responses={
             200: OpenApiResponse(response=UserProfileSerializer, description="Профиль успешно обновлен."),
             400: OpenApiResponse(description="Ошибка валидации переданных данных."),
@@ -140,6 +149,7 @@ class UserLoginAPIView(APIView):
     patch=extend_schema(
         summary="Частичное обновление информации о пользователе",
         description="Доступно зарегистрированному пользователю для частичного изменения данных профиля.",
+        tags=["Пользователи"],
         responses={
             200: OpenApiResponse(response=UserProfileSerializer, description="Данные профиля успешно изменены."),
             400: OpenApiResponse(description="Ошибка валидации переданных данных."),
@@ -149,6 +159,7 @@ class UserLoginAPIView(APIView):
     delete=extend_schema(
         summary="Удаление профиля пользователя",
         description="Мягкое удаление профиля текущего авторизованного пользователя (деактивация).",
+        tags=["Пользователи"],
         responses={
             204: OpenApiResponse(description="Профиль успешно деактивирован (нет содержимого)."),
             401: OpenApiResponse(description="Неавторизованный доступ."),
@@ -159,7 +170,7 @@ class UserProfileAPIView(RetrieveUpdateDestroyAPIView):
     """Класс для просмотра, обновления и мягкого удаления профиля пользователя."""
 
     serializer_class = UserProfileSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = (IsAuthenticated,)
 
     def get_object(self):
         return self.request.user
@@ -179,7 +190,8 @@ class UserProfileAPIView(RetrieveUpdateDestroyAPIView):
 
 @extend_schema(
     summary="Просмотр списка пользователей",
-    description="Возвращает список всех активных зарегистрированных пользователей системы. Доступ разрешен только администраторам.",
+    description="Возвращает список всех активных зарегистрированных пользователей системы. "
+                "Доступ разрешен только администраторам.",
     responses={
         200: OpenApiResponse(
             response=UserListSerializer,  # Корректно подхватит пагинацию, если она есть
@@ -198,7 +210,7 @@ class UserListAPIView(ListAPIView):
     """Класс для просмотра списка пользователей."""
 
     serializer_class = UserListSerializer
-    permission_classes = [IsAdminUser]
+    permission_classes = (IsAdminUser,)
 
     def get_queryset(self):
         # Фильтруем список, исключая мягко удаленных пользователей
@@ -207,7 +219,9 @@ class UserListAPIView(ListAPIView):
 
 @extend_schema(
     summary="Выход пользователя из системы",
-    description="Завершает текущую сессию пользователя и очищает данные авторизации. Доступно только авторизованным пользователям.",
+    description="Завершает текущую сессию пользователя и очищает данные авторизации. "
+                "Доступно только авторизованным пользователям.",
+    request=None, # Явно указываем Swagger, что в POST-запросе тело слать не нужно
     responses={
         200: OpenApiResponse(
             response=inline_serializer(
@@ -227,7 +241,7 @@ class UserListAPIView(ListAPIView):
 class UserLogoutAPIView(APIView):
     """Класс для выхода пользователя с инвалидацией токена."""
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = (IsAuthenticated,)
 
     def post(self, request):
         # Безопасное удаление токена

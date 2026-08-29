@@ -20,7 +20,7 @@ class CustomUser(AbstractUser):
     )
 
     USERNAME_FIELD = "email"  # Поле для входа (логин)
-    REQUIRED_FIELDS = []
+    REQUIRED_FIELDS = ()
 
     # Подключаем кастомный менеджер (без него не создастся суперпользователь)
     objects = CustomUserManager()

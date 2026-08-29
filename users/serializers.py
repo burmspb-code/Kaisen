@@ -1,6 +1,6 @@
+from django.contrib.auth import authenticate
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError as DjangoValidationError
-from django.contrib.auth import authenticate
 from rest_framework import serializers
 
 from users.models import CustomUser
@@ -13,7 +13,7 @@ class UserRegisterSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CustomUser
-        fields = ['email', 'password']
+        fields = ('email', 'password')
 
     def validate_password(self, value):
         """Проверка введенного пароля."""
@@ -22,7 +22,7 @@ class UserRegisterSerializer(serializers.ModelSerializer):
             validate_password(value)
             return value
         except DjangoValidationError as e:
-            raise serializers.ValidationError(e.messages)
+            raise serializers.ValidationError(e.messages) from e
 
     def create(self, validated_data):
         """Хешируем пароль при сохранении пользователя."""
@@ -62,7 +62,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CustomUser
-        fields = ["email",]
+        fields = ("email",)
 
 
 class UserListSerializer(serializers.ModelSerializer):
@@ -70,13 +70,12 @@ class UserListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CustomUser
-        fields = ["id", "email", "is_active", "date_joined"]
+        fields = ("id", "email", "is_active", "date_joined")
         # Защищаем поля от редактирования
-        read_only_fields = ["id", "email", "is_active", "date_joined"]
+        read_only_fields = ("id", "email", "is_active", "date_joined")
 
 
 class UserNestedSerializer(serializers.Serializer):
-    username = serializers.CharField()
     email = serializers.EmailField()
 
 class UserRegisterSuccessResponseSerializer(serializers.Serializer):

@@ -148,7 +148,7 @@ AUTH_USER_MODEL = "users.CustomUser"
 # Email
 # https://docs.djangoproject.com/en/6.1/topics/email/#topic-email-configuration
 
-EMAIL_BACKEND = {
+MAILERS = {
     'default': {
         'BACKEND': 'django.core.mail.backends.console.EmailBackend',
     },
@@ -199,10 +199,23 @@ REST_FRAMEWORK = {
 
 # Настройки для автодокументации
 SPECTACULAR_SETTINGS = {
-    'TITLE': 'Kaisen API',
-    'DESCRIPTION': 'Документация для проекта Kaisen',
+    'TITLE': 'Имя вашего API',
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
+
+    # Описываем, как именно работает TokenAuthentication для Swagger
+    'APPEND_COMPONENTS': {
+        'securitySchemes': {
+            'TokenAuth': {
+                'type': 'apiKey',
+                'in': 'header',
+                'name': 'Authorization',
+                'description': 'Введите токен в формате: Token <ваш_токен>'
+            }
+        }
+    },
+    # Применяем эту схему ко всему проекту глобально
+    'SECURITY': [{'TokenAuth': []}],
 }
 
 # ==============================================================================

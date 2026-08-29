@@ -2,6 +2,7 @@ from django.db import models
 
 from users.models import CustomUser
 
+
 class Habit(models.Model):
     """Класс привычки."""
 
@@ -14,7 +15,6 @@ class Habit(models.Model):
     location=models.CharField(
         max_length=100,
         blank=True,
-        null=True,
         verbose_name="Место",
         help_text="Место, где должна выполняться привычка",
     )
@@ -52,7 +52,6 @@ class Habit(models.Model):
     award=models.CharField(
         max_length=250,
         blank=True,
-        null=True,
         verbose_name="Вознаграждение",
         help_text="Вознаграждение",
     )

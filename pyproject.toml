@@ -30,16 +30,54 @@ dev = [
     "mypy (>=2.3.1,<3.0.0)"
 ]
 
-[tool.ruff]
-# Базовые проверки (E, F), сортировка импортов (I) и современный синтаксис (UP)
-select = ["E", "F", "I", "W", "UP"]
-ignore = []
-line-length = 88
-
-[tool.ruff.format]
-quote-style = "double"
-
 [tool.mypy]
 python_version = "3.14"  # Укажите вашу версию Python (например, 3.10, 3.11, 3.12)
 strict = true
 ignore_missing_imports = true
+
+[tool.ruff]
+# Минимально необходимая версия Ruff (хорошая практика для фиксации окружения)
+required-version = ">=0.5.0"
+
+# Список исключений: папки окружения, миграции и ваш settings.py
+exclude = [
+    ".git",
+    ".venv",
+    "venv",
+    "env",
+    "__pycache__",
+    "**/migrations/*.py",
+    # Укажите точный путь к вашему settings.py от корня проекта:
+    "config/settings.py",
+]
+line-length = 120
+# Настройки линтера (анализатора кода)
+[tool.ruff.lint]
+# Стандартный набор правил для профессионального Django-проекта
+select = [
+    "E",   # Ошибки стиля кода (pycodestyle errors)
+    "W",   # Предупреждения стиля кода (pycodestyle warnings)
+    "F",   # Логические ошибки и дефекты (Pyflakes)
+    "I",   # Автоматическая сортировка импортов (замена isort)
+    "S",   # Проверка безопасности (Bandit) — найдет жестко зашитые пароли
+    "B",   # Поиск потенциальных багов и подводных камней (flake8-bugbear)
+    "DJ",  # Специфичные правила для Django (flake8-django)
+    "RUF", # Собственные полезные правила разработчиков Ruff
+]
+
+# Правила, которые мы сознательно отключаем (если нужно)
+ignore = [
+        "S101",   # Разрешаем использовать assert в тестах
+        "RUF001", # Игнорировать русскую раскладку в самом коде
+        "RUF002", # Игнорировать русскую раскладку в докстрингах
+        "RUF003", # Игнорировать русскую раскладку в комментариях (#)
+]
+
+[tool.ruff.format]
+quote-style = "double"
+
+# Настройки для автоматической сортировки импортов (секция I)
+[tool.ruff.lint.isort]
+section-order = ["future", "standard-library", "third-party", "first-party", "local-folder"]
+# Укажите через запятую имена всех ваших Django-приложений в проекте:
+known-first-party = ["routines", "users"]

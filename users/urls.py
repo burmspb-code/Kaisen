@@ -2,10 +2,10 @@
 Маршрутизация (URL) приложения управления пользователями (users).
 """
 
-from users.apps import UsersConfig
 from django.urls import path
 
-from users.views import UserRegisterAPIView, UserLoginAPIView, UserListAPIView, UserLogoutAPIView, UserProfileAPIView
+from users.apps import UsersConfig
+from users.views import UserListAPIView, UserLoginAPIView, UserLogoutAPIView, UserProfileAPIView, UserRegisterAPIView
 
 app_name = UsersConfig.name
 
