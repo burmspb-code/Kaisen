@@ -10,6 +10,7 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     # Изолируем API префиксом api/v1/
     path("api/v1/", include("users.urls", namespace="users")),
+    path("api/v1/", include("routines.urls", namespace="routines")),
 
     # ================= МАРШРУТЫ АВТОДОКУМЕНТАЦИИ API =================
     # Скачивание файла схемы (нужно для работы панелей)

@@ -18,6 +18,8 @@ redis = "^8.1.0"
 pillow = "^12.3.0"
 drf-spectacular = "^0.30.0"
 drf-spectacular-sidecar = "^2026.8.1"
+django-stubs = "^6.1.0"
+djangorestframework-stubs = "^3.18.1"
 
 
 [build-system]
