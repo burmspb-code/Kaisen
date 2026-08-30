@@ -1,16 +1,16 @@
-import datetime
 import os
 
 import requests
 from django.db.models import F
 from django.db.models.functions import ExtractDay
+from django.utils import timezone
 
 from routines.models import Habit
 
 
 def current_time_reminders() -> list[int]:
     """Возвращает плоский список ID привычек с учетом их периодичности."""
-    now = datetime.datetime.now()
+    now = timezone.localtime(timezone.now())
     current_time_str = now.time().strftime("%H:%M:00")
     today = now.date()
 
@@ -72,7 +72,7 @@ def send_telegram_habit_alert(habit_id: int) -> bool:
 
         if response.status_code == 200:
             # Обновляем дату последней отправки сегодняшним числом
-            habit.last_sent_date = datetime.date.today()
+            habit.last_sent_date = timezone.now().date()
             habit.save(update_fields=["last_sent_date"])  # Оптимизированное сохранение одного поля
 
             print(f"✅ Уведомление по привычке {habit_id} успешно отправлено!")

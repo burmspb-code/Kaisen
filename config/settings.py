@@ -200,7 +200,7 @@ REST_FRAMEWORK = {
 
 # Настройки для автодокументации
 SPECTACULAR_SETTINGS = {
-    'TITLE': 'Имя вашего API',
+    'TITLE': 'Kaisen Habits API',
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
 
@@ -248,5 +248,7 @@ CELERY_BEAT_SCHEDULE = {
         "schedule": crontab(minute="*"),
     },
 }
+
+CELERY_BEAT_CHECK_INTERVAL = 60  # Расписание запуска, секунды
 
 # ==============================================================================

@@ -10,17 +10,17 @@ from routines.views import HabitCreateAPIView, HabitDetailAPIView, HabitListAPIV
 app_name = RoutinesConfig.name
 
 urlpatterns = [
-    # Список привычек
-    path(
-        "routines/",
-        HabitListAPIView.as_view(),
-        name="routines-list",
-    ),
     # Общий список всех публичных привычек
     path(
         "routines/public/",
         PublicHabitAPIView.as_view(),
         name="routines-public",
+    ),
+    # Список привычек
+    path(
+        "routines/",
+        HabitListAPIView.as_view(),
+        name="routines-list",
     ),
     # Создание новой привычки
     path(

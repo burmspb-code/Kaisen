@@ -14,7 +14,12 @@ def send_habit_reminders():
         send_single_telegram_notification.delay(habit_id)
 
 
-@shared_task(rate_limit="25/s")
+@shared_task(
+    rate_limit="25/s",
+    autoretry_for=(Exception,),
+    retry_backoff=True,
+    max_retries=3
+)
 def send_single_telegram_notification(habit_id: int):
     """Задача-исполнитель: физически запускает отправку через функцию."""
     send_telegram_habit_alert(habit_id)

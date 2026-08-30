@@ -28,11 +28,17 @@ class UserRegisterSerializer(serializers.ModelSerializer):
         except DjangoValidationError as e:
             raise serializers.ValidationError(e.messages) from e
 
+    def validate_tg_chat_id(self, value):
+        if value and not value.isdigit():
+            raise serializers.ValidationError("Telegram Chat ID должен содержать только цифры")
+        return value
+
     def create(self, validated_data):
         """Хешируем пароль при сохранении пользователя."""
         user = CustomUser.objects.create_user(
             email=validated_data.get('email', ''),
-            password=validated_data['password']
+            password=validated_data['password'],
+            tg_chat_id=validated_data.get('tg_chat_id', '')
         )
         return user
 
