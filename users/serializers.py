@@ -17,7 +17,7 @@ class UserRegisterSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CustomUser
-        fields = ('email', 'password')
+        fields = ('email', 'password', 'tg_chat_id')
 
     def validate_password(self, value):
         """Проверка введенного пароля."""
@@ -66,7 +66,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CustomUser
-        fields = ("email",)
+        fields = ("email", "tg_chat_id")
 
 
 class UserListSerializer(serializers.ModelSerializer):
@@ -74,9 +74,9 @@ class UserListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CustomUser
-        fields = ("id", "email", "is_active", "date_joined")
+        fields = ("id", "email", "tg_chat_id", "is_active", "date_joined")
         # Защищаем поля от редактирования
-        read_only_fields = ("id", "email", "is_active", "date_joined")
+        read_only_fields = ("id", "email", "tg_chat_id", "is_active", "date_joined")
 
 
 class UserNestedSerializer(serializers.Serializer):

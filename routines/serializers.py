@@ -36,6 +36,13 @@ class HabitSerializer(serializers.ModelSerializer):
             "id",
             "user",
         )
+        validators = (
+            RewardOrRelatedHabitValidator(),
+            TimeToCompleteValidator(),
+            RelatedHabitIsPleasantValidator(),
+            SignPleasantHabitValidator(),
+            PeriodicityValidator(),
+        )
 
 
 class HabitListSerializer(serializers.ModelSerializer):
@@ -111,8 +118,6 @@ class HabitDetailSerializer(serializers.ModelSerializer):
             "id",
             "user",
         )
-
-        # Подключаем кастомные валидаторы
         validators = (
             RewardOrRelatedHabitValidator(),
             TimeToCompleteValidator(),
@@ -120,3 +125,4 @@ class HabitDetailSerializer(serializers.ModelSerializer):
             SignPleasantHabitValidator(),
             PeriodicityValidator(),
         )
+

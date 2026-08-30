@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 
+from celery.schedules import crontab
 from django.core.exceptions import ImproperlyConfigured
 from dotenv import load_dotenv
 
@@ -236,5 +237,16 @@ CELERY_TASK_TRACK_STARTED = True
 
 # Тайм-аут для хранения результатов задач в Redis (в секундандах - 1 день)
 CELERY_RESULT_EXPIRES = 86400
+
+# Настройка планировщика
+CELERY_BEAT_SCHEDULE = {
+    # Название задачи (может быть любым)
+    "send-reminders-every-minute": {
+        # Точный путь к функции-задаче, которую мы пометили декоратором @shared_task
+        "task": "routines.tasks.send_habit_reminders",
+        # Расписание запуска: crontab(minute="*") означает "просыпаться каждую минуту"
+        "schedule": crontab(minute="*"),
+    },
+}
 
 # ==============================================================================

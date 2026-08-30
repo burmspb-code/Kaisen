@@ -61,6 +61,12 @@ class Habit(models.Model):
         verbose_name="Время на выполнение",
         help_text="Укажите в формате ЧЧ:ММ:СС",
     )
+    last_sent_date = models.DateField(
+        blank=True,
+        null=True,
+        verbose_name="Дата последней отправки",
+        help_text="Заполняется автоматически при успешной отправке уведомления в Telegram",
+    )
     is_publicity = models.BooleanField(
         default=False,
         verbose_name="Признак публичности",
