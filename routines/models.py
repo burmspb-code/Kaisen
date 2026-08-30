@@ -71,5 +71,7 @@ class Habit(models.Model):
         verbose_name = "Привычка"
         verbose_name_plural = "Привычки"
 
+        ordering = ("id",)
+
     def __str__(self):
         return f"{self.user} - {self.action}"

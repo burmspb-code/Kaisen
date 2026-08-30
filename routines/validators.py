@@ -38,11 +38,14 @@ class RelatedHabitIsPleasantValidator:
     def __call__(self, attrs):
         related_habit = attrs.get("related_habit")
 
-        if related_habit and not related_habit.sign_pleasant_habit:
-            raise serializers.ValidationError(
-                "В связанные привычки могут попадать только те привычки, "
-                "у которых включен признак приятной привычки (sign_pleasant_habit=True)."
-            )
+        # Защита Swagger: лезем внутрь только если это объект модели
+        if related_habit and hasattr(related_habit, "sign_pleasant_habit"):
+            # Бизнес-логика: отсекаем НЕприятные привычки
+            if not related_habit.sign_pleasant_habit:
+                raise serializers.ValidationError(
+                    "В связанные привычки могут попадать только те привычки, "
+                    "у которых включен признак приятной привычки (sign_pleasant_habit=True)."
+                )
 
 
 class SignPleasantHabitValidator:

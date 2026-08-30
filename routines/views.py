@@ -8,9 +8,10 @@
 
 from drf_spectacular.utils import OpenApiResponse, extend_schema, extend_schema_view
 from rest_framework.generics import CreateAPIView, ListAPIView, RetrieveUpdateDestroyAPIView
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated
 
 from routines.models import Habit
+from routines.paginators import HabitPagination
 from routines.serializers import HabitDetailSerializer, HabitListSerializer, HabitSerializer
 
 
@@ -73,10 +74,21 @@ class HabitListAPIView(ListAPIView):
 
     serializer_class = HabitListSerializer
     permission_classes = (IsAuthenticated,)
+    pagination_class = HabitPagination
 
     def get_queryset(self):
-        """Используем метод для защиты от кеширования."""
-        return Habit.objects.filter(user=self.request.user)
+        """Список привычек под конкретного пользователя"""
+        # ЗАЩИТА ДЛЯ REDOC: если метод вызван роботом-генератором,
+        # сразу возвращаем пустой кверисет, не двигаясь дальше по коду.
+        if getattr(self, "swagger_fake_view", False):
+            return Habit.objects.none()
+
+        user = self.request.user
+        # Разрешаем адиминистратору просматривать все привычки
+        if user.is_superuser:
+            return Habit.objects.all()
+
+        return Habit.objects.filter(user=user)
 
 
 @extend_schema_view(
@@ -131,4 +143,46 @@ class HabitDetailAPIView(RetrieveUpdateDestroyAPIView):
 
     def get_queryset(self):
         """Возвращает только те привычки, которые принадлежат текущему пользователю."""
+        # ЗАЩИТА ДЛЯ SWAGGER/REDOC: робот-генератор сразу получает пустой кверисет
+        # и не падает из-за отсутствия объекта request
+        if getattr(self, "swagger_fake_view", False):
+            return Habit.objects.none()
+
+        user = self.request.user
+
+        # Разрешаем администратору редактировать и удалять любые привычки
+        if user.is_superuser:
+            return Habit.objects.all()
+
         return Habit.objects.filter(user=self.request.user)
+
+
+@extend_schema(
+    summary="Просмотр списка публичных привычек",
+    auth=[], # Показывает, что авторизация не нужна
+    description=(
+        "Просматривать могут любые (неавторизованные) пользователи."
+    ),
+    responses={
+        200: OpenApiResponse(
+            response=HabitListSerializer,
+            description="Список привычек получен.",
+        ),
+    },
+    tags=["Привычки"],
+)
+class PublicHabitAPIView(ListAPIView):
+    """Представление для просмотра публичных привычек."""
+
+    serializer_class = HabitListSerializer
+    permission_classes = (AllowAny,)
+    pagination_class = HabitPagination
+
+    def get_queryset(self):
+        """Список публичных привычек"""
+        # ЗАЩИТА ДЛЯ REDOC: если метод вызван роботом-генератором,
+        # сразу возвращаем пустой кверисет, не двигаясь дальше по коду.
+        if getattr(self, "swagger_fake_view", False):
+            return Habit.objects.none()
+
+        return Habit.objects.filter(is_publicity=True)
