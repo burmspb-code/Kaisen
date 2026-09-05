@@ -1,9 +1,6 @@
 """
 Модели приложения users.
 
-Содержит кастомную модель пользователя CustomUser, расширяющую стандартный
-функционал Django возможностью хранения аватаров.
-
 Применяется в качестве глобальной модели аутентификации проекта
 через настройку AUTH_USER_MODEL в settings.py.
 """
@@ -21,9 +18,15 @@ class CustomUser(AbstractUser):
     email = models.EmailField(
         unique=True, verbose_name="email", help_text="Введите адрес электронной почты"
     )
+    tg_chat_id = models.CharField(
+        max_length=100,
+        blank=True,
+        verbose_name="Telegram Chat ID",
+        help_text="ID чата пользователя в Телеграм для отправки уведомлений",
+    )
 
     USERNAME_FIELD = "email"  # Поле для входа (логин)
-    REQUIRED_FIELDS = []
+    REQUIRED_FIELDS = ()
 
     # Подключаем кастомный менеджер (без него не создастся суперпользователь)
     objects = CustomUserManager()
