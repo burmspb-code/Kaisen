@@ -1,0 +1,107 @@
+services:
+  web:
+    build: .
+    container_name: kaisen_django
+    restart: always
+    env_file:
+      - .env
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/code
+      - /code/.venv # Экранируем папку от перезаписи
+      - static_volume:/code/static
+    command: python manage.py runserver 0.0.0.0:8000
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  celery:
+    build: .  # Использует тот же Dockerfile, пересборки с нуля не будет
+    container_name: kaisen_celery
+    restart: always
+    env_file:
+      - .env
+    volumes:
+      - .:/code
+      - /code/.venv # Экранируем папку от перезаписи
+    # Запускаем воркер. Уровень логирования ставим info для отладки
+    command: celery -A config worker --loglevel=info
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  celery-beat:
+    build: .
+    container_name: kaisen_celery_beat
+    restart: always
+    env_file:
+      - .env
+    volumes:
+      - .:/code
+      - /code/.venv # Экранируем папку от перезаписи
+    command: celery -A config beat --loglevel=info
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  db:
+    image: postgres:16-alpine
+    container_name: kaisen_postgres
+    restart: always
+    env_file:
+      - .env
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  redis:
+    image: redis:7-alpine
+    container_name: kaisen_redis
+    restart: always
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  postgres_data:
+  static_volume:
