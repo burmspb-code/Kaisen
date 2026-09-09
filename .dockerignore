@@ -1,0 +1,31 @@
+# Исключаем локальные папки виртуальных окружений (они у вас на Windows, в Docker Linux они сломают сборку)
+.venv/
+venv/
+env/
+ENV/
+
+# Исключаем кэш компиляции Python
+**/__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Исключаем скрытую историю Git и настройки вашей IDE (PyCharm / VS Code)
+.git/
+.gitignore
+.idea/
+.vscode/
+
+# Исключаем файлы локальных баз данных и медиа (чтобы не затереть боевую базу локальной копией)
+*.sqlite3
+media/
+db.sqlite3
+
+# Исключаем логи разработки
+*.log
+logs/
+
+# Исключаем файлы настроек Docker из копирования внутрь самого себя
+Dockerfile
+docker-compose.yaml
+.dockerignore
