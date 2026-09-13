@@ -22,6 +22,8 @@ django-stubs = "^6.1.0"
 djangorestframework-stubs = "^3.18.1"
 requests = "^2.34.2"
 coverage = "^7.16.0"
+gunicorn = "^26.2.0"
+celery-types = "^0.26.0"
 
 
 [build-system]
