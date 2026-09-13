@@ -4,7 +4,7 @@ services:
   web:
     build: .
     container_name: kaisen_django
-    restart: always
+    restart: no
     env_file:
       - .env
     # Вместо ports используем expose, чтобы порт 8000 был виден ТОЛЬКО для Nginx
@@ -31,7 +31,7 @@ services:
   nginx:
     image: nginx:1.25-alpine
     container_name: kaisen-nginx
-    restart: always
+    restart: no
     ports:
       - "80:80" # Открываем стандартный web-порт наружу
     volumes:
@@ -45,7 +45,7 @@ services:
   celery:
     build: .
     container_name: kaisen_celery
-    restart: always
+    restart: no
     env_file:
       - .env
     volumes:
@@ -66,7 +66,7 @@ services:
   celery-beat:
     build: .
     container_name: kaisen_celery_beat
-    restart: always
+    restart: no
     env_file:
       - .env
     volumes:
@@ -87,7 +87,7 @@ services:
   db:
     image: postgres:16-alpine
     container_name: kaisen_postgres
-    restart: always
+    restart: no
     env_file:
       - .env
     volumes:
@@ -106,7 +106,7 @@ services:
   redis:
     image: redis:7-alpine
     container_name: kaisen_redis
-    restart: always
+    restart: no
     # Убрали порты наружу для безопасности
     healthcheck:
       test: [ "CMD", "redis-cli", "ping" ]
