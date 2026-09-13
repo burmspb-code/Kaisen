@@ -1,16 +1,21 @@
+version: '3.8'
+
 services:
   web:
     build: .
     container_name: kaisen_django
-    restart: always
+    restart: no
     env_file:
       - .env
-    ports:
-      - "8000:8000"
+    # Вместо ports используем expose, чтобы порт 8000 был виден ТОЛЬКО для Nginx
+    expose:
+      - "8000"
     volumes:
       - .:/code
       - /code/.venv # Экранируем папку от перезаписи
       - static_volume:/code/static
+    # На виртуалке замените эту строку на запуск gunicorn:
+    # command: gunicorn config.wsgi:application --bind 0.0.0.0:8000 --workers 3
     command: python manage.py runserver 0.0.0.0:8000
     depends_on:
       db:
@@ -23,16 +28,29 @@ services:
         max-size: "10m"
         max-file: "3"
 
+  nginx:
+    image: nginx:1.25-alpine
+    container_name: kaisen-nginx
+    restart: no
+    ports:
+      - "80:80" # Открываем стандартный web-порт наружу
+    volumes:
+      # Пробрасываем конфигурационный файл
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      # Монтируем статику в стандартную для Nginx папку (измените путь в nginx.conf, см. ниже)
+      - static_volume:/var/html/static:ro
+    depends_on:
+      - web
+  
   celery:
-    build: .  # Использует тот же Dockerfile, пересборки с нуля не будет
+    build: .
     container_name: kaisen_celery
-    restart: always
+    restart: no
     env_file:
       - .env
     volumes:
       - .:/code
-      - /code/.venv # Экранируем папку от перезаписи
-    # Запускаем воркер. Уровень логирования ставим info для отладки
+      - /code/.venv
     command: celery -A config worker --loglevel=info
     depends_on:
       db:
@@ -48,12 +66,12 @@ services:
   celery-beat:
     build: .
     container_name: kaisen_celery_beat
-    restart: always
+    restart: no
     env_file:
       - .env
     volumes:
       - .:/code
-      - /code/.venv # Экранируем папку от перезаписи
+      - /code/.venv
     command: celery -A config beat --loglevel=info
     depends_on:
       db:
@@ -69,7 +87,7 @@ services:
   db:
     image: postgres:16-alpine
     container_name: kaisen_postgres
-    restart: always
+    restart: no
     env_file:
       - .env
     volumes:
@@ -88,9 +106,8 @@ services:
   redis:
     image: redis:7-alpine
     container_name: kaisen_redis
-    restart: always
-    ports:
-      - "6379:6379"
+    restart: no
+    # Убрали порты наружу для безопасности
     healthcheck:
       test: [ "CMD", "redis-cli", "ping" ]
       interval: 30s

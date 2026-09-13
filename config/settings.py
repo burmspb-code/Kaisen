@@ -137,10 +137,9 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 STATIC_URL = "static/"
 
-STATICFILES_DIRS = [
-    BASE_DIR / "static",
-]
+STATICFILES_DIRS = []
 
+STATIC_ROOT = BASE_DIR / "static"
 
 # Указываем Django использовать кастомную модель вместо встроенной
 AUTH_USER_MODEL = "users.CustomUser"
