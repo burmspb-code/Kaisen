@@ -6,4 +6,88 @@ on:
   pull_request:
     branches: [main, develop]
 
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
 jobs:
+  # --- 1. ЭТАП ЛИНТИНГА (Запускается первым) ---
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Готовый лаконичный плагин для проверки кода линтером Ruff
+      - name: Run Ruff Linter Check
+        uses: chartboost/ruff-action@v1
+        with:
+          src: "."
+
+  # --- 2. ЭТАП ТЕСТИРОВАНИЯ (Запустится ТОЛЬКО после успешного линтера) ---
+  test:
+    needs: lint # Зависимость от джобы lint
+    runs-on: ubuntu-latest
+    services:
+      postgres_test:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: kaisen_test_db
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres_password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Настраиваем окружение с твоей версией Python 3.14
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.14'
+          cache: 'pip'
+
+      - name: Install Poetry
+        run: pipx install poetry==2.2.1
+
+      - name: Install dependencies
+        run: poetry install --only main
+
+      # Запускаем твои 9 тестов на реальном Postgres в облаке GitHub
+      - name: Run Django Tests
+        env:
+          SECRET_KEY: "temporary-secret-key-for-github-actions-tests"
+          DEBUG: "True"
+          DB_NAME: kaisen_test_db
+          DB_USER: postgres
+          DB_PASSWORD: postgres_password
+          DB_HOST: localhost
+          DB_PORT: 5432
+        run: poetry run python manage.py test
+
+  # --- 3. ЭТАП АВТО-ДЕПЛОЯ (Запустится только если линтер и тесты прошли успешно) ---
+  deploy:
+    needs: test # Зависимость от джобы test
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' # Исключаем деплой для Pull Request-ов
+
+    steps:
+      - name: Deploy to Yandex Cloud via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd ~/Kaisen
+            git pull origin ${{ github.ref_name }}
+            docker compose up -d --build
+            docker compose exec -T web python manage.py migrate --noinput
+            docker compose exec -T web python manage.py collectstatic --noinput
