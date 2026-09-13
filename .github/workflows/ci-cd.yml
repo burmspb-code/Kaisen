@@ -32,16 +32,10 @@ jobs:
       postgres_test:
         image: postgres:16-alpine
         env:
-          SECRET_KEY: "temporary-secret-key-for-github-actions-tests"
-          DEBUG: "True"
-          DB_NAME: kaisen_test_db
-          DB_USER: postgres
-          DB_PASSWORD: postgres_password
-          DB_HOST: localhost
-          DB_PORT: 5432
-          # ЗАГЛУШКИ ДЛЯ ТЕСТОВОГО ОКРУЖЕНИЯ:
-          TELEGRAM_BOT_TOKEN: "123456789:ABCdefGhIJKlmNoPQRsTUVwxyZ"
-          ADMIN_PASSWORD: "test_admin_password_123"
+          # Инициализируем тестовую базу данных внутри контейнера
+          POSTGRES_DB: kaisen_test_db
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres_password
         ports:
           - 5432:5432
         options: >-
@@ -70,13 +64,17 @@ jobs:
       # Запускаем твои 9 тестов на реальном Postgres в облаке GitHub
       - name: Run Django Tests
         env:
-          SECRET_KEY: "temporary-secret-key-for-github-actions-tests"
-          DEBUG: "True"
+          # Передаем настройки подключения к созданной базе
           DB_NAME: kaisen_test_db
           DB_USER: postgres
           DB_PASSWORD: postgres_password
           DB_HOST: localhost
           DB_PORT: 5432
+          # Передаем обязательные заглушки для логики проекта
+          SECRET_KEY: "temporary-secret-key-for-github-actions-tests"
+          DEBUG: "True"
+          TELEGRAM_BOT_TOKEN: "123456789:ABCdefGhIJKlmNoPQRsTUVwxyZ"
+          ADMIN_PASSWORD: "test_admin_password_123"
         run: poetry run python manage.py test
 
   # --- 3. ЭТАП АВТО-ДЕПЛОЯ (Запустится только если линтер и тесты прошли успешно) ---
