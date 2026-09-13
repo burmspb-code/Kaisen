@@ -141,6 +141,7 @@ STATICFILES_DIRS = [
     BASE_DIR / "static",
 ]
 
+STATIC_ROOT = BASE_DIR / 'static'
 
 # Указываем Django использовать кастомную модель вместо встроенной
 AUTH_USER_MODEL = "users.CustomUser"
